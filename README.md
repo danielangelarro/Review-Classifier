@@ -28,3 +28,47 @@ necesarias, para que los compradores sugieran mejores compras a los usuarios.
 
 
 ## Installation
+
+### Construir la imagen y correr el proyecto
+
+1. **Construir y levantar los servicios**:
+
+    ```bash
+    ./script.sh build
+    ./script.sh up
+    ```
+
+2. **Crear las migraciones y actualizar la base de datos**:
+
+    ```bash
+    ./script.sh create_migration "Add user and user history tables"
+    ./script.sh migrate
+    ```
+
+3. **Ejecutar las pruebas**:
+
+    ```bash
+    ./script.sh test
+    ```
+
+4. **Detener los servicios**:
+
+    ```bash
+    ./script.sh down
+    ```
+
+5. **Uso local sin Docker**:
+
+    Asegúrate de tener PostgreSQL instalado y configurado localmente con las credenciales adecuadas.
+
+    - **Migrar localmente**:
+
+        ```bash
+        ./script.sh local_migrate
+        ```
+
+    - **Correr pruebas localmente**:
+
+        ```bash
+        ./script.sh local_test
+        ```
