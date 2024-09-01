@@ -5,6 +5,7 @@ from app.domain.models import Review
 class RankingService:
 
     def calculate_relevance(self, review: Review, user_history, product, product_graph: nx.Graph):
+        """Calculates the relevance of a review for a product, given a user's history"""
         relevance_score = 0
 
         # Verificar si el producto fue comprado o visitado por el usuario
@@ -35,6 +36,7 @@ class RankingService:
         return relevance_score
 
     def rank_reviews(self, reviews, user_history, product, product_graph: nx.Graph, top_n=5):
+        """Returns the top ranked reviews"""
         ranked_reviews = sorted(
             reviews,
             key=lambda review: self.calculate_relevance(review, user_history, product, product_graph),

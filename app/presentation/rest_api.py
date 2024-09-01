@@ -18,6 +18,20 @@ def get_top_reviews(
         top_n: int = 5,
         db: Session = Depends(get_db)
 ):
+    """Endpoint to get the most relevant reviews for an user
+
+    Args:
+        user_id (str): The Id of the user
+        product_id (str): The Id of the product
+        top_n (int, optional): The number of results. Defaults to 5.
+        db (Session, optional): Injected DB session. Defaults to Depends(get_db).
+
+    Raises:
+        HTTPException: (404) User/Product/User History Not found
+
+    Returns:
+        dict: json containing the top reviews for a product from the perspective of an user
+    """
     user_repo = UserRepository(db)
     user_history_repo = UserHistoryRepository(db)
     product_repo = ProductRepository(db)
