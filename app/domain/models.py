@@ -13,8 +13,9 @@ class Review(Base):
     user_id = Column(String, ForeignKey("users.id"), index=True)
     title = Column(String)
     content = Column(String)
-    sentiment = Column(String)
+    sentiment = Column(Integer)
     votes = Column(Integer, default=0)
+    helpful = Column(String, default=0)
     date = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", backref="reviews")
@@ -38,36 +39,3 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    history = relationship("UserHistory", back_populates="user", uselist=False)
-
-
-class UserHistory(Base):
-    __tablename__ = "user_histories"
-
-    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
-    user = relationship("User", back_populates="history")
-    purchased_products = relationship("UserPurchase", back_populates="user_history")
-    browsing_history = relationship("UserBrowsing", back_populates="user_history")
-
-
-class UserPurchase(Base):
-    __tablename__ = "user_purchases"
-
-    id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("user_histories.user_id"), nullable=False)
-    product_id = Column(String, ForeignKey("products.id"), nullable=False)
-    purchase_date = Column(DateTime, nullable=False, default=datetime.utcnow)
-
-    user_history = relationship("UserHistory", back_populates="purchased_products")
-
-
-class UserBrowsing(Base):
-    __tablename__ = "user_browsings"
-
-    id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("user_histories.user_id"), nullable=False)
-    product_id = Column(String, ForeignKey("products.id"), nullable=False)
-    browse_date = Column(DateTime, nullable=False, default=datetime.utcnow)
-
-    user_history = relationship("UserHistory", back_populates="browsing_history")

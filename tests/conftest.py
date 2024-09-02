@@ -1,18 +1,20 @@
-# tests/conftest.py
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.database import Base
 from app.domain.models import Product
 from app.domain.models import Review
-from app.domain.models import User, UserHistory, UserPurchase, UserBrowsing
+from app.domain.models import User
 from app.database import get_db
 from app.main import app
 from fastapi.testclient import TestClient
 from faker import Faker
 import uuid
+import pandas as pd
+from datetime import datetime
 
-DATABASE_URL_TEST = "postgresql://postgres:postgres@localhost:5434/test_app_db"
+
+DATABASE_URL_TEST = "postgresql://postgres:postgres@localhost:5434/app_db"
 
 engine = create_engine(DATABASE_URL_TEST)
 SessionTesting = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -39,63 +41,46 @@ def client(db):
 
 @pytest.fixture(scope="session")
 def fake_data(db):
+    df = pd.read_csv('tests/data/csv/data.csv')
+
     fake = Faker()
-    # Crear productos
-    products = [Product(
-        id=str(uuid.uuid4()),
+    # Crear un producto
+    product = Product(
+        id='B000006OVE',
         name=fake.word(),
-        category=fake.random_element(elements=('Electronics', 'Books', 'Clothing', 'Home')),
+        category='Game',
         price=fake.random_number(digits=2),
         description=fake.text(max_nb_chars=300)
-    ) for _ in range(10)]
-
-    db.add_all(products)
-    db.commit()
-
-    # Crear un usuario
-    user = User(
-        id=str(uuid.uuid4()),
-        username=fake.user_name(),
-        email=fake.email()
     )
-    db.add(user)
+
+    db.add(product)
     db.commit()
 
-    # Crear historial de usuario
-    user_history = UserHistory(user_id=user.id)
-    db.add(user_history)
-    db.commit()
+    # Inserta los usuarios
+    users_id = set([row['reviewerID'] for _, row in df.iterrows()])
 
-    # Agregar compras y navegaciones
-    purchases = [UserPurchase(
-        id=str(uuid.uuid4()),
-        user_id=user.id,
-        product_id=products[0].id,
-        purchase_date=fake.date_time_this_year()
-    )]
+    users = [User(
+        id=user_id,
+        username=f'User {user_id}',
+        email=f'{user_id}@gmail.com'
+    ) for user_id in users_id]
 
-    browsings = [UserBrowsing(
-        id=str(uuid.uuid4()),
-        user_id=user.id,
-        product_id=products[0].id,
-        browse_date=fake.date_time_this_year()
-    )]
-
-    db.add_all(purchases + browsings)
+    db.add_all(users)
     db.commit()
 
     # Crear reseñas
     reviews = [Review(
-        product_id=products[0].id,
-        user_id=user.id,
-        title=fake.sentence(),
-        content=fake.text(max_nb_chars=200),
-        sentiment=fake.random_element(elements=('Positive', 'Negative')),
-        votes=fake.random_int(min=0, max=100),
-        date=fake.date_time_this_year()
-    ) for _ in range(50)]
+        product_id=row['asin'],
+        user_id=row['reviewerID'],
+        title=row['summary'],
+        content=row['reviewText'],
+        sentiment=row['sentiments'],
+        votes=row['overall'],
+        helpful=row['helpful'],
+        date=datetime.strptime(row['reviewTime'], '%m %d, %Y')
+    ) for _, row in df.iterrows() if row['asin'] == product.id]
 
     db.add_all(reviews)
     db.commit()
 
-    return {"user": user, "products": products, "reviews": reviews}
+    return {"user": users, "product": product, "reviews": reviews}
