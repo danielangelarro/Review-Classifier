@@ -161,6 +161,9 @@ La aplicación simula estar integrada en un sistema _e-comerce_ lo cual se logra
 
 ## Steps to install and run the project locally
 
+> [!NOTE]
+> Puede ejecutar la parte principal del proyecto desde el archivo ubicado en **metrics tests/main1.ipynb**
+
 1. **Crear y activar el entorno virtual**:
    ```bash
    ./script.sh create_venv
