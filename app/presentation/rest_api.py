@@ -17,6 +17,36 @@ def get_top_reviews(
         top_n: int = 5,
         db: Session = Depends(get_db)
 ):
+    """
+    Retrieve and rank the top reviews for a specific product and user.
+
+    This endpoint fetches the top-ranked reviews for a given product, tailored to a specific user's preferences. It uses a ranking service to determine the most relevant reviews.
+
+    Parameters:
+    - user_id (str): The unique identifier of the user.
+    - product_id (str): The unique identifier of the product.
+    - top_n (int, optional): The number of top reviews to return. Defaults to 5.
+    - db (Session): The database session, injected by FastAPI's dependency system.
+
+    Returns:
+    A dictionary containing:
+    - user_id (str): The ID of the user.
+    - product_id (str): The ID of the product.
+    - top_reviews (list): A list of the top-ranked reviews, ordered by relevance.
+
+    Raises:
+    - HTTPException (404): If the user or product is not found in the database.
+
+    Dependencies:
+    - UserRepository: For fetching user data.
+    - ProductRepository: For fetching product data.
+    - ReviewRepository: For fetching review data.
+    - RankingService: For ranking the reviews.
+
+    Note:
+    This function assumes the existence of a ranking algorithm that can determine 
+    the relevance of reviews based on user preferences and product characteristics.
+    """
     user_repo = UserRepository(db)
     product_repo = ProductRepository(db)
     review_repo = ReviewRepository(db)
