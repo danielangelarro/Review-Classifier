@@ -7,3 +7,5 @@ pytest
 pytest-cov
 faker
 networkx
+numpy
+sklearn
