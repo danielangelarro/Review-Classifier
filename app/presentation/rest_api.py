@@ -63,4 +63,5 @@ def get_top_reviews(
     reviews = review_repo.get_reviews_by_product_id(product_id)
 
     top_reviews = ranking_service.rank_reviews(reviews, user_id, product_id, top_n=top_n)
+    
     return {"user_id": user_id, "product_id": product_id, "top_reviews": top_reviews}

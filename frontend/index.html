@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reseñas de usuarios</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background-color: #6b46c1;
+      color: white;
+      padding: 20px;
+      box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+    .sidebar h2 {
+      margin-top: 0;
+    }
+    .sidebar label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    .sidebar select {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      border: none;
+    }
+    h1, h2 {
+      color: #6b46c1;
+    }
+    .review {
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    }
+    .review:last-child {
+      border-bottom: none;
+    }
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .review-header h3 {
+      margin: 0;
+    }
+    .rating {
+      color: #fbbf24;
+    }
+    .likes-dislikes {
+      display: flex;
+      gap: 10px;
+    }
+    .likes-dislikes span {
+      display: flex;
+      align-items: center;
+    }
+    .search-sort {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .search-box {
+      position: relative;
+    }
+    .search-box input {
+      padding-left: 30px;
+      padding-right: 15px;
+      padding-top: 5px;
+      padding-bottom: 5px;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Leyendas del Reino Perdido</h1>
+
+  <section>
+    <h2>Reseñas de usuarios</h2>
+
+    <div class="search-sort">
+      <select id="sortBy" onchange="sortReviews()">
+        <option value="date">Fecha</option>
+        <option value="rating">Calificación</option>
+      </select>
+
+        <!-- <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar comentarios" oninput="searchReviews()">
+        </div> -->
+    </div>
+
+    <ul id="reviewsList">
+      <!-- Reseñas generadas dinámicamente aquí -->
+    </ul>
+  </section>
+</div>
+
+<div class="sidebar">
+  <h2>Seleccionar Juego y Usuario</h2>
+  <label for="gameSelect">Juego</label>
+  <select id="gameSelect" onchange="fetchReviews()">
+    <!-- Opciones generadas dinámicamente -->
+  </select>
+
+  <label for="userSelect">Usuario</label>
+  <select id="userSelect" onchange="fetchReviews()">
+    <!-- Opciones generadas dinámicamente -->
+  </select>
+</div>
+
+<script>
+  let reviews = [];
+  let filteredReviews = [...reviews];
+  let expandedComments = [];
+
+  // Función para inicializar la página
+  async function init() {
+    await populateSelects();
+    await fetchReviews();
+  }
+
+  // Llenar los selects de juegos y usuarios
+  async function populateSelects() {
+    try {
+      const gameSelect = document.getElementById('gameSelect');
+      const userSelect = document.getElementById('userSelect');
+
+      // Simular obtención de juegos y usuarios desde la API
+      const games = await fetchGames();
+      const users = await fetchUsers();
+
+      // Llenar selects
+      games.forEach(game => {
+        const option = document.createElement('option');
+        option.value = game.id;
+        option.textContent = game.name;
+        gameSelect.appendChild(option);
+      });
+
+      users.forEach(user => {
+        const option = document.createElement('option');
+        option.value = user.id;
+        option.textContent = user.name;
+        userSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error al poblar selects:', error);
+    }
+  }
+
+  // Función simulada para obtener juegos
+  async function fetchGames() {
+    return [
+      { id: 'B000006OVE', name: 'Juego A' },
+      { id: 'B000035YBP', name: 'Juego B' },
+      { id: 'B0000690Z9', name: 'Juego C' },
+    ];
+  }
+
+  // Función simulada para obtener usuarios
+  async function fetchUsers() {
+    return [
+      { id: 'A2HD75EMZR8QLN', name: 'Usuario 1' },
+      { id: 'AVYMBTCXYREXE', name: 'Usuario 2' },
+      { id: 'A26HIN1JGAME5I', name: 'Usuario 3' },
+    ];
+  }
+
+  // Llamada a la API para obtener reseñas con el usuario y juego seleccionados
+  async function fetchReviews() {
+    const gameSelect = document.getElementById('gameSelect').value;
+    const userSelect = document.getElementById('userSelect').value;
+
+    if (!gameSelect || !userSelect) {
+      console.log('Debe seleccionar un juego y un usuario');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/reviews/${userSelect}/${gameSelect}?top_n=5`);
+      if (!response.ok) {
+        throw new Error('Error al obtener las reseñas');
+      }
+      const data = await response.json();
+
+      reviews = data.top_reviews.map(review => ({
+        id: review[1].user_id,
+        author: review[1].reviewerName,
+        text: review[1].content,
+        rating: review[1].votes,
+        likes: parseInt(review[1].helpful.slice(1, -1).split(',')[0]),
+        dislikes: parseInt(review[1].helpful.slice(1, -1).split(',')[1])
+      }));
+
+      filteredReviews = [...reviews];
+      displayReviews();
+    } catch (error) {
+      console.error('Error al obtener las reseñas:', error);
+    }
+  }
+
+  // Mostrar las reseñas
+  function displayReviews() {
+    const reviewsList = document.getElementById('reviewsList');
+    reviewsList.innerHTML = '';
+
+    filteredReviews.forEach(review => {
+      const isExpanded = expandedComments.includes(review.id);
+      const text = isExpanded || review.text.length <= 150 ? review.text : review.text.substring(0, 150) + '...';
+
+      const reviewItem = `
+        <li class="review">
+          <div class="review-header">
+            <div>
+              <h3>${review.author}</h3>
+              <div class="rating">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+            </div>
+            <div class="likes-dislikes">
+              <span>👍 ${review.likes}</span>
+              <span>👎 ${review.dislikes}</span>
+            </div>
+          </div>
+          <p class="${!isExpanded ? 'line-clamp' : ''}">${text}</p>
+          
+        </li>
+      `;
+      reviewsList.insertAdjacentHTML('beforeend', reviewItem);
+    });
+  }
+
+  // Función para expandir/colapsar comentarios
+  function toggleComment(id) {
+    if (expandedComments.includes(id)) {
+      expandedComments = expandedComments.filter(commentId => commentId !== id);
+    } else {
+      expandedComments.push(id);
+    }
+    displayReviews();
+  }
+
+  // Función para ordenar reseñas
+  function sortReviews() {
+    const sortBy = document.getElementById('sortBy').value;
+    filteredReviews.sort((a, b) => {
+      if (sortBy === 'rating') {
+        return b.rating - a.rating;
+      }
+      return b.id - a.id;
+    });
+    displayReviews();
+  }
+
+  // Función para buscar comentarios
+  function searchReviews() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    filteredReviews = reviews.filter(review => 
+      review.text.toLowerCase().includes(searchTerm) ||
+      review.author.toLowerCase().includes(searchTerm)
+    );
+    displayReviews();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>

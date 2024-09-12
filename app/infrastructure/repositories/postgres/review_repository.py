@@ -24,6 +24,9 @@ class ReviewRepository:
         """
         return self.db.query(Review).filter(Review.product_id == product_id).all()
 
+    def get_reviews(self):
+        return self.db.query(Review).all()
+
     def create_review(self, product_id: str, user_id: str, title: str, content: str, sentiment: str):
         """
         Create a new review for a product.

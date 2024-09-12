@@ -78,7 +78,7 @@ function activate_venv() {
 function run_local() {
     activate_venv
     echo "Ejecutando la aplicación localmente..."
-    uvicorn app.main:app --reload
+    uvicorn app.main:app --reload --reload --host 0.0.0.0 --port 8000
 }
 
 # Función para abrir Swagger en el navegador

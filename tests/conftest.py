@@ -25,7 +25,7 @@ def db():
     session = SessionTesting()
     yield session
     session.close()
-    Base.metadata.drop_all(bind=engine)
+    # Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="session")
 def client(db):
@@ -45,6 +45,7 @@ def fake_data(db):
 
     fake = Faker()
     # Crear un producto
+    
     product = Product(
         id='B000006OVE',
         name=fake.word(),
@@ -52,8 +53,18 @@ def fake_data(db):
         price=fake.random_number(digits=2),
         description=fake.text(max_nb_chars=300)
     )
+    
+    product_ids = set([row['asin'] for _, row in df.iterrows()])
+    
+    products = [Product(
+        id=id,
+        name=fake.word(),
+        category='Game',
+        price=fake.random_number(digits=2),
+        description=fake.text(max_nb_chars=300)
+    ) for id in product_ids]
 
-    db.add(product)
+    db.add_all(products)
     db.commit()
 
     # Inserta los usuarios
